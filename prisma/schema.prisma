@@ -12,3 +12,46 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum Status {
+  todo
+  in_progress
+  done
+}
+
+enum Priority {
+  low
+  medium
+  high
+  urgent
+}
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  color     String
+  icon      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks     Task[]
+}
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  status      Status    @default(todo)
+  priority    Priority  @default(medium)
+  dueDate     DateTime?
+  categoryId  String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  category    Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId])
+  @@index([status])
+  @@index([priority])
+  @@index([dueDate])
+}
