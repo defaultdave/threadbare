@@ -27,4 +27,35 @@ fields:
         id: "a0c0c9b8"
         name: "Done"
 
+  priority:
+    id: "PVTSSF_lAHOAHFEDM4BPDLezg9ks0M"
+    options:
+      p1:
+        id: "5c87ee52"
+        name: "P1 (Critical)"
+      p2:
+        id: "d4109f71"
+        name: "P2 (Standard)"
+      p3:
+        id: "c38e867d"
+        name: "P3 (Nice-to-have)"
+  size:
+    id: "PVTSSF_lAHOAHFEDM4BPDLezg9ks04"
+    options:
+      "1":
+        id: "2ccf7f00"
+        name: "1"
+      "2":
+        id: "cf0ed163"
+        name: "2"
+      "3":
+        id: "1360335f"
+        name: "3"
+      "5":
+        id: "5102dfcf"
+        name: "5"
+      "8":
+        id: "9103c028"
+        name: "8"
+
 repo: defaultdave/threadbare
