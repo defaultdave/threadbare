@@ -5,8 +5,14 @@ import { TaskCard } from "@/components/shared/task-card";
 import { TaskFilters } from "@/components/shared/task-filters";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TaskListSkeleton } from "@/components/shared/task-list-skeleton";
+import {
+  serializeTask,
+  taskWithCategoryInclude,
+  taskDefaultOrderBy,
+  categorySummarySelect,
+} from "@/lib/utils/task";
 import type { Prisma } from "@/generated/prisma/client";
-import type { TaskWithCategory, CategorySummary } from "@/lib/types/task";
+import type { CategorySummary } from "@/lib/types/task";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -31,6 +37,7 @@ async function TaskList({
   categoryId?: string;
 }) {
   const where: Prisma.TaskWhereInput = {};
+  let hasFilters = false;
 
   const parsed = taskQuerySchema.safeParse({
     status: status ?? undefined,
@@ -40,50 +47,25 @@ async function TaskList({
   if (parsed.success) {
     if (parsed.data.status) where.status = parsed.data.status;
     if (parsed.data.categoryId) where.categoryId = parsed.data.categoryId;
+    hasFilters = Boolean(parsed.data.status || parsed.data.categoryId);
   }
+  // When parsing fails, treat as no filters (where stays {}, hasFilters stays false)
 
   const [tasks, categories] = await Promise.all([
     prisma.task.findMany({
       where,
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-            icon: true,
-          },
-        },
-      },
-      orderBy: [{ dueDate: "asc" }, { priority: "desc" }, { createdAt: "desc" }],
+      include: taskWithCategoryInclude,
+      orderBy: taskDefaultOrderBy,
     }),
     prisma.category.findMany({
-      select: {
-        id: true,
-        name: true,
-        color: true,
-        icon: true,
-      },
+      select: categorySummarySelect,
       orderBy: { name: "asc" },
     }),
   ]);
 
-  const serializedTasks: TaskWithCategory[] = tasks.map((task) => ({
-    id: task.id,
-    title: task.title,
-    description: task.description,
-    status: task.status,
-    priority: task.priority,
-    dueDate: task.dueDate ? task.dueDate.toISOString() : null,
-    categoryId: task.categoryId,
-    createdAt: task.createdAt.toISOString(),
-    updatedAt: task.updatedAt.toISOString(),
-    category: task.category,
-  }));
+  const serializedTasks = tasks.map(serializeTask);
 
   const categorySummaries: CategorySummary[] = categories;
-
-  const hasFilters = Boolean(status || categoryId);
 
   return (
     <>

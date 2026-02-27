@@ -22,12 +22,21 @@ interface TaskFiltersProps {
   categories: CategorySummary[];
 }
 
+const VALID_STATUS_VALUES = new Set(STATUS_OPTIONS.map((o) => o.value));
+
 export function TaskFilters({ categories }: TaskFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const currentStatus = searchParams.get("status") ?? "all";
-  const currentCategory = searchParams.get("categoryId") ?? "all";
+  const rawStatus = searchParams.get("status") ?? "all";
+  const rawCategory = searchParams.get("categoryId") ?? "all";
+
+  const currentStatus = VALID_STATUS_VALUES.has(rawStatus) ? rawStatus : "all";
+  const validCategoryIds = new Set(categories.map((c) => c.id));
+  const currentCategory =
+    rawCategory === "all" || validCategoryIds.has(rawCategory)
+      ? rawCategory
+      : "all";
 
   const updateFilter = useCallback(
     (key: string, value: string) => {

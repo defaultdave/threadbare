@@ -111,9 +111,14 @@ describe("formatDueDate", () => {
     expect(formatDueDate("2026-03-15T06:00:00.000Z")).toBe("Due today");
   });
 
-  it("should return 'Due tomorrow' for date within next day", () => {
-    // Now is 12:00 UTC, due at 23:59 same calendar day => diffMs ~0.5 day, ceil => 1 => "Due tomorrow"
-    expect(formatDueDate("2026-03-15T23:59:59.000Z")).toBe("Due tomorrow");
+  it("should return 'Due today' for date later the same calendar day", () => {
+    // Now is 12:00 UTC, due at 23:59 same calendar day => same day => "Due today"
+    expect(formatDueDate("2026-03-15T23:59:59.000Z")).toBe("Due today");
+  });
+
+  it("should return 'Due tomorrow' for date on the next calendar day", () => {
+    // Now is 12:00 UTC March 15, due at 10:00 UTC March 16 => next day => "Due tomorrow"
+    expect(formatDueDate("2026-03-16T10:00:00.000Z")).toBe("Due tomorrow");
   });
 
   it("should return formatted date for future dates", () => {
@@ -144,8 +149,8 @@ describe("getDueDateStyle", () => {
   });
 
   it("should return orange style for dates due tomorrow", () => {
-    // diffDays = 1 => due tomorrow
-    const style = getDueDateStyle("2026-03-15T23:59:59.000Z");
+    // diffDays = 1 => due tomorrow (next calendar day)
+    const style = getDueDateStyle("2026-03-16T10:00:00.000Z");
     expect(style).toContain("text-orange-600");
   });
 

@@ -46,26 +46,35 @@ const priorityConfig: Record<Priority, PriorityConfig> = {
   },
 };
 
+/** Normalize a Date to midnight (start of day) in local time. */
+function startOfDay(d: Date): Date {
+  const copy = new Date(d);
+  copy.setHours(0, 0, 0, 0);
+  return copy;
+}
+
+/** Get the difference in calendar days between a due date and today. */
+function diffCalendarDays(isoDate: string): number {
+  const dueDay = startOfDay(new Date(isoDate));
+  const today = startOfDay(new Date());
+  const diffMs = dueDay.getTime() - today.getTime();
+  return Math.round(diffMs / (1000 * 60 * 60 * 24));
+}
+
 function formatDueDate(isoDate: string): string {
-  const date = new Date(isoDate);
-  const now = new Date();
-  const diffMs = date.getTime() - now.getTime();
-  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  const diffDays = diffCalendarDays(isoDate);
 
   if (diffDays < 0) return "Overdue";
   if (diffDays === 0) return "Due today";
   if (diffDays === 1) return "Due tomorrow";
-  return date.toLocaleDateString("en-US", {
+  return new Date(isoDate).toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
   });
 }
 
 function getDueDateStyle(isoDate: string): string {
-  const date = new Date(isoDate);
-  const now = new Date();
-  const diffMs = date.getTime() - now.getTime();
-  const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  const diffDays = diffCalendarDays(isoDate);
 
   if (diffDays < 0) return "text-red-600 dark:text-red-400";
   if (diffDays <= 1) return "text-orange-600 dark:text-orange-400";
@@ -140,4 +149,4 @@ export function TaskCard({ task }: TaskCardProps) {
   );
 }
 
-export { statusLabels, statusStyles, priorityConfig, formatDueDate, getDueDateStyle };
+export { statusLabels, statusStyles, priorityConfig, formatDueDate, getDueDateStyle, startOfDay, diffCalendarDays };

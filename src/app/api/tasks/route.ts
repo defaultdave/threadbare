@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { taskQuerySchema } from "@/lib/validators/task";
+import {
+  serializeTask,
+  taskWithCategoryInclude,
+  taskDefaultOrderBy,
+  categorySummarySelect,
+} from "@/lib/utils/task";
 import type { Prisma } from "@/generated/prisma/client";
-import type { TasksApiResponse, TaskWithCategory } from "@/lib/types/task";
+import type { TasksApiResponse } from "@/lib/types/task";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const searchParams = request.nextUrl.searchParams;
@@ -32,44 +38,17 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const [tasks, categories] = await Promise.all([
     prisma.task.findMany({
       where,
-      include: {
-        category: {
-          select: {
-            id: true,
-            name: true,
-            color: true,
-            icon: true,
-          },
-        },
-      },
-      orderBy: [{ dueDate: "asc" }, { priority: "desc" }, { createdAt: "desc" }],
+      include: taskWithCategoryInclude,
+      orderBy: taskDefaultOrderBy,
     }),
     prisma.category.findMany({
-      select: {
-        id: true,
-        name: true,
-        color: true,
-        icon: true,
-      },
+      select: categorySummarySelect,
       orderBy: { name: "asc" },
     }),
   ]);
 
-  const serializedTasks: TaskWithCategory[] = tasks.map((task) => ({
-    id: task.id,
-    title: task.title,
-    description: task.description,
-    status: task.status,
-    priority: task.priority,
-    dueDate: task.dueDate ? task.dueDate.toISOString() : null,
-    categoryId: task.categoryId,
-    createdAt: task.createdAt.toISOString(),
-    updatedAt: task.updatedAt.toISOString(),
-    category: task.category,
-  }));
-
   const response: TasksApiResponse = {
-    tasks: serializedTasks,
+    tasks: tasks.map(serializeTask),
     categories,
   };
 
