@@ -1,4 +1,4 @@
-import type { Status, Priority } from "@/generated/prisma";
+import type { Status, Priority } from "@/generated/prisma/client";
 
 export interface TaskWithCategory {
   id: string;

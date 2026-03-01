@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Calendar, AlertTriangle, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import type { TaskWithCategory } from "@/lib/types/task";
-import type { Priority, Status } from "@/generated/prisma";
+import type { Priority, Status } from "@/generated/prisma/client";
 
 const statusLabels: Record<Status, string> = {
   todo: "To Do",
