@@ -1,16 +1,19 @@
 import { Suspense } from "react";
+import Link from "next/link";
 import { prisma } from "@/lib/db";
 import { taskQuerySchema } from "@/lib/validators/task";
 import { TaskCard } from "@/components/shared/task-card";
 import { TaskFilters } from "@/components/shared/task-filters";
 import { EmptyState } from "@/components/shared/empty-state";
 import { TaskListSkeleton } from "@/components/shared/task-list-skeleton";
+import { buttonVariants } from "@/components/ui/button";
 import {
   serializeTask,
   taskWithCategoryInclude,
   taskDefaultOrderBy,
   categorySummarySelect,
 } from "@/lib/utils/task";
+import { Plus } from "lucide-react";
 import type { Prisma } from "@/generated/prisma/client";
 import type { CategorySummary } from "@/lib/types/task";
 import type { Metadata } from "next";
@@ -90,11 +93,21 @@ export default async function TasksPage({ searchParams }: TasksPageProps) {
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
-      <header className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Tasks</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Manage your store tasks and stay on top of what needs to be done.
-        </p>
+      <header className="mb-6 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Tasks</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Manage your store tasks and stay on top of what needs to be done.
+          </p>
+        </div>
+        <Link
+          href="/tasks/new"
+          aria-label="Create new task"
+          className={buttonVariants({ size: "sm" })}
+        >
+          <Plus className="h-4 w-4" aria-hidden="true" />
+          New Task
+        </Link>
       </header>
       <section className="space-y-4" aria-label="Task list">
         <Suspense fallback={<TaskListSkeleton />}>

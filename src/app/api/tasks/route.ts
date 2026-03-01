@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { taskQuerySchema } from "@/lib/validators/task";
+import { taskQuerySchema, createTaskSchema } from "@/lib/validators/task";
 import {
   serializeTask,
   taskWithCategoryInclude,
@@ -8,7 +8,7 @@ import {
   categorySummarySelect,
 } from "@/lib/utils/task";
 import type { Prisma } from "@/generated/prisma/client";
-import type { TasksApiResponse } from "@/lib/types/task";
+import type { TasksApiResponse, TaskApiResponse } from "@/lib/types/task";
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const searchParams = request.nextUrl.searchParams;
@@ -53,4 +53,46 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   };
 
   return NextResponse.json(response);
+}
+
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  const parsed = createTaskSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? "Invalid request body" },
+      { status: 400 }
+    );
+  }
+
+  const { title, description, categoryId, priority, dueDate, status } =
+    parsed.data;
+
+  try {
+    const task = await prisma.task.create({
+      data: {
+        title,
+        description: description ?? null,
+        categoryId,
+        priority,
+        dueDate: dueDate ? new Date(dueDate) : null,
+        status,
+      },
+      include: taskWithCategoryInclude,
+    });
+
+    const response: TaskApiResponse = { task: serializeTask(task) };
+    return NextResponse.json(response, { status: 201 });
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to create task" },
+      { status: 500 }
+    );
+  }
 }
