@@ -22,7 +22,7 @@ interface TaskFiltersProps {
   categories: CategorySummary[];
 }
 
-const VALID_STATUS_VALUES = new Set(STATUS_OPTIONS.map((o) => o.value));
+const VALID_STATUS_VALUES: Set<string> = new Set(STATUS_OPTIONS.map((o) => o.value));
 
 export function TaskFilters({ categories }: TaskFiltersProps) {
   const router = useRouter();
