@@ -29,3 +29,7 @@ export interface TasksApiResponse {
   tasks: TaskWithCategory[];
   categories: CategorySummary[];
 }
+
+export interface TaskApiResponse {
+  task: TaskWithCategory;
+}
