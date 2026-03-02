@@ -12,17 +12,24 @@ export async function GET(
 ): Promise<NextResponse> {
   const { id } = await context.params;
 
-  const task = await prisma.task.findUnique({
-    where: { id },
-    include: taskWithCategoryInclude,
-  });
+  try {
+    const task = await prisma.task.findUnique({
+      where: { id },
+      include: taskWithCategoryInclude,
+    });
 
-  if (!task) {
-    return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    if (!task) {
+      return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+
+    const response: TaskApiResponse = { task: serializeTask(task) };
+    return NextResponse.json(response);
+  } catch {
+    return NextResponse.json(
+      { error: "Failed to fetch task" },
+      { status: 500 }
+    );
   }
-
-  const response: TaskApiResponse = { task: serializeTask(task) };
-  return NextResponse.json(response);
 }
 
 export async function PUT(

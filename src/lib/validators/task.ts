@@ -25,10 +25,10 @@ export type TaskQuery = z.infer<typeof taskQuerySchema>;
 /**
  * Schema for creating a new task.
  * - title: required, non-empty string
- * - description: optional string
+ * - description: optional, nullable string; empty string is converted to null
  * - categoryId: required, non-empty string
  * - priority: required enum value
- * - dueDate: optional ISO 8601 date string (coerced to Date)
+ * - dueDate: optional ISO 8601 datetime string with offset (validated as string)
  * - status: optional, defaults to "todo"
  */
 export const createTaskSchema = z.object({
@@ -50,9 +50,9 @@ export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 
 /**
  * Schema for updating an existing task.
- * All fields are required (no partial updates via this schema).
- * dueDate may be null to clear the date, or a valid ISO 8601 string.
- * description may be null to clear it, or a string to set it.
+ * - title, categoryId, priority, and status are required.
+ * - description: optional, nullable; empty string is converted to null.
+ * - dueDate: optional, nullable; null clears the date, valid ISO 8601 string sets it.
  */
 export const updateTaskSchema = z.object({
   title: z.string().min(1, "Title is required"),

@@ -186,12 +186,7 @@ describe("TaskForm (create mode)", () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it("should redirect to /tasks on successful submission", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ id: "new-task" }),
-    });
-
+  it("should not submit when required fields are missing", async () => {
     render(<TaskForm categories={sampleCategories} />);
 
     await act(async () => {
@@ -204,34 +199,24 @@ describe("TaskForm (create mode)", () => {
       fireEvent.submit(screen.getByRole("form", { name: "Create task" }));
     });
 
-    // The form will fail validation for categoryId (required), so let's set it
-    // If categoryId is empty, the form won't submit to API; let's check redirect
-    // Since categoryId is required, the form will show an error and not call fetch
-    // So this test checks redirect only when the form is fully valid
-    // For simplicity, we check that mockPush is called when API returns ok
-    // To make the form submit, we need to set all required fields
-    // Since this is a unit test, let's just verify behavior: if validation fails, no push
-    // If we add more interactions, let's just verify that a network error leads to error display
-  });
-
-  it("should display server error message on API failure", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: false,
-      json: async () => ({ error: "Database unavailable" }),
+    // Category is required but not selected — validation should block submission
+    await waitFor(() => {
+      expect(screen.getByText("Category is required")).toBeInTheDocument();
     });
 
+    expect(mockFetch).not.toHaveBeenCalled();
+    expect(mockPush).not.toHaveBeenCalled();
+  });
+
+  it("should show category validation error when submitting with title but no category", async () => {
     render(<TaskForm categories={sampleCategories} />);
 
-    // Set title and submit form via form submit with title but no category
-    // The form validation will prevent submit before API if fields are invalid
-    // Let's submit with title + mock category select working
     await act(async () => {
       fireEvent.change(screen.getByLabelText(/Title/), {
         target: { value: "Test task" },
       });
     });
 
-    // Form will fail for category, so we check the category error
     await act(async () => {
       fireEvent.submit(screen.getByRole("form", { name: "Create task" }));
     });
@@ -240,7 +225,7 @@ describe("TaskForm (create mode)", () => {
       expect(screen.getByText("Category is required")).toBeInTheDocument();
     });
 
-    // fetch should not have been called since validation failed
+    // Validation fails before fetch is called
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
